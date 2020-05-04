@@ -36,9 +36,8 @@ class RecursosController extends AbstractController
     /**
      * @Route("/api/recursos/{id}", methods={"GET"})
      */
-    public function show(Request $request): Response
+    public function show(Request $request, int $id): Response
     {
-        $id = $request->get('id');
         $recursoRepository = $this->getDoctrine()->getRepository(Recurso::class);
         $recurso = $recursoRepository->find($id);
 
@@ -69,10 +68,8 @@ class RecursosController extends AbstractController
     /**
      * @Route("/api/recursos/{id}", methods={"PUT"})
      */
-    public function update(Request $request): Response
+    public function update(Request $request, int $id): Response
     {
-        $id = $request->get('id');
-
         $requestBody = $request->getContent();
         $dataJson = json_decode($requestBody);
 
