@@ -87,15 +87,18 @@ class RecursosController extends AbstractController
         return new JsonResponse($recurso);
     }
 
-    public function destroy()
+    /**
+     * @Route("/api/recursos/{id}", methods={"DELETE"})
+     */
+    public function destroy(int $id): Response
     {
-        
+        $recurso = $this->getRecurso($id);
+        $this->entityManager->remove($recurso);
+        $this->entityManager->flush();
+
+        return new Response('',Response::HTTP_NO_CONTENT);
     }
 
-    /**
-     * @param int $id
-     * @return object|null
-     */
     public function getRecurso(int $id)
     {
         $recursoRepository = $this->getDoctrine()->getRepository(Recurso::class);
