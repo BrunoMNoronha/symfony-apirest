@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\Recurso;
+use App\Helper\RecursoFactory;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -16,10 +17,15 @@ class RecursosController extends AbstractController
      * @var EntityManagerInterface
      */
     private $entityManager;
+    /**
+     * @var RecursoFactory
+     */
+    private $recursoFactory;
 
-    public function __construct(EntityManagerInterface $entityManager)
+    public function __construct(EntityManagerInterface $entityManager, RecursoFactory $recursoFactory)
     {
         $this->entityManager = $entityManager;
+        $this->recursoFactory = $recursoFactory;
     }
 
     /**
@@ -38,8 +44,7 @@ class RecursosController extends AbstractController
      */
     public function show(Request $request, int $id): Response
     {
-        $recursoRepository = $this->getDoctrine()->getRepository(Recurso::class);
-        $recurso = $recursoRepository->find($id);
+        $recurso = $this->getRecurso($id);
 
         $statusCode = is_null($recurso) ? Response::HTTP_NO_CONTENT : Response::HTTP_OK;
 
@@ -52,12 +57,7 @@ class RecursosController extends AbstractController
     public function store(Request $request): Response
     {
         $requestBody = $request->getContent();
-        $dataJson = json_decode($requestBody);
-
-        $recurso = new Recurso();
-        $recurso->title = $dataJson->title;
-        $recurso->description = $dataJson->description;
-        $recurso->url = $dataJson->url;
+        $recurso = $this->recursoFactory->createRecurso($requestBody);
 
         $this->entityManager->persist($recurso);
         $this->entityManager->flush();
@@ -71,15 +71,9 @@ class RecursosController extends AbstractController
     public function update(Request $request, int $id): Response
     {
         $requestBody = $request->getContent();
-        $dataJson = json_decode($requestBody);
+        $newRecurso = $this->recursoFactory->createRecurso($requestBody);
 
-        $newRecurso = new Recurso();
-        $newRecurso->title = $dataJson->title;
-        $newRecurso->description = $dataJson->description;
-        $newRecurso->url = $dataJson->url;
-
-        $recursoRepository = $this->getDoctrine()->getRepository(Recurso::class);
-        $recurso = $recursoRepository->find($id);
+        $recurso = $this->getRecurso($id);
         if (is_null($recurso)){
             return new Response('', Response::HTTP_NOT_FOUND);
         }
@@ -96,5 +90,16 @@ class RecursosController extends AbstractController
     public function destroy()
     {
         
+    }
+
+    /**
+     * @param int $id
+     * @return object|null
+     */
+    public function getRecurso(int $id)
+    {
+        $recursoRepository = $this->getDoctrine()->getRepository(Recurso::class);
+        $recurso = $recursoRepository->find($id);
+        return $recurso;
     }
 }
